@@ -1,0 +1,67 @@
+---
+title: "Lesson11"
+author: "Vicki Hertzberg"
+date: "3/29/2017"
+output: html_document
+---
+
+# Analyzing Microbiome Data
+
+## Processing Sequencing Data with the DADA2 Pipeline
+
+Today we are going to go through the process of "feeding" a set of Illumina-sequenced paired-end .fastq files into the `dada2` package, with the goal of deriving a _sequence table_ in the end. A sequence table is akin to the ubiquitous OTU table, only it is at a much higher resolution. 
+
+We are using `dada2` because it infers sample sequences exactly, resolving differences of as little as one (1) nucleotide. It appears that `dada2` will not only provide higher resolution, it also performs better than two other major players in this field: mothur and QIIME (v1). But note that QIIME v2.1 now has a DADA2 step built into it, so it should now compete well with this package. 
+
+For the moment, however, we are going to continue to use `dada2`, well, because. Because we are now expert R, RStudio, git and github users, that's why!!!
+
+#### First Note of Importance
+
+Our "input" into the package is a set of Illumina-sequenced paired-end .fastq files that have been demultiplexed (i.e., split by sample) and _from which the barcodes/adapters/primers have already been removed._  In this toy dataset all of these barcoode/adapters/primers have been removed. But when it comes to processing your own data, you will have to check this before you proceed. 
+
+My personal experience to with two different labs is that you will receive demultiplexed files with the barcodes removed, *but* the primers have not been removed. You will need to know that the primers are so that you can figure out the lengths. You can trim before hand with a program such as TRIMMOMATIC (http://www.usadellab.org/cms/?page=trimmomatic)[http://www.usadellab.org/cms/?page=trimmomatic]. This way, when we display the quality plots later you will be seeing the quality of the "meat" of your data, instead of having some distraction with the quality of the sequences including the primers. 
+
+You can also trim later by setting an option. I will show you (outside of an R chunk of course, because these data have already had the primers trimmed) how to do that.
+
+#### Second Note of Importance
+
+This pipeline also assumes that if you have paired reads, that the forward and reverse .fastq files contain the reads in matching order.
+
+If this is not true, you will need to remedy this before proceeding. Please see the `dada2` FAQ for suggestions: (http://benjjneb.github.io/dada2/faq.html#what-if-my-forward-and-reverse-reads-arent-in-matching-order)[http://benjjneb.github.io/dada2/faq.html#what-if-my-forward-and-reverse-reads-arent-in-matching-order].
+
+##### End of Notes of Importance. For the Moment.
+
+
+Since I am moving my processing from my MacBook Air to a brand new souped-up MacBook Pro, I needed to install the dada2, ShortRead, and ggplot2 packages from Bioconductor. All of you should have already have these installed. Since I have now installed everything, I am now going to load those libraries and make sure that the package versions are correct. I am comparing against the `dada2` pipeline tutorial, which can be found at (http://benjjneb.github.io/dada2/tutorial.html)[http://benjjneb.github.io/dada2/tutorial.html]. In fact, most of this comes from that tutorial, which was written by Ben Callahan, who is the author of `dada2`. Note that as of today (3/24/2017), the version numbers that I will display from the R chunk below will differ slightly from those in the online tutorial. But mine are newer versions, and that should be ok. If you have older versions, you might be in trouble.
+
+So let's start now.
+
+### Are We Ready?
+
+Let's check that all is ready.
+
+```{r}
+library(dada2); packageVersion("dada2")
+library(ShortRead); packageVersion("ShortRead")
+library(ggplot2); packageVersion("ggplot2")
+```
+
+I have also downloaded the file used in the Mothur MiSeq SOP, as well as two RDP reference files. You will have to change the path in the next chunk to the path to where your files sit. Also if you are on a Windows machine, this will also look different. Let's make sure they are all in the proper place on my machine:
+
+```{r}
+# Set the path to the data files
+path <- "~/Documents/NRSG_741/MiSeqData/MiSeq_SOP"
+fileNames <- list.files(path)
+fileNames
+```
+
+OK, I see 38 .fastq files and the two RDP files. With the exception of a file named "filtered" (which the `dada2` tutorial lists but we do not) and the two RDP files (which we list but the `dada2` tutorial does not), we agree. The file named "filtered" will be created in another couple of steps, so we are not going to worry about that.
+
+### Filter and Trim
+
+So now we are ready to use the `dada2` pipeline. We will first read in the names of the .fastq files. Then we will manipulate those names as character variables, using regular expressions to create lists of the forward and reverse read .fastq files in *matched* order.
+
+
+
+
+
