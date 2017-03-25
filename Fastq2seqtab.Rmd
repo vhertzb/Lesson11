@@ -7,11 +7,157 @@ output: html_document
 
 # Analyzing Microbiome Data
 
+Most of you are here today because you have an interest in the microbiome, that "new organ" comprising the trillions of microbes that live in and on us. Today we are going to talk about how to identify these organisms isolated from a sample by sequencing a portion of the genetic material present, lining these up into counts of organisms, then using these data to summarize the microbes present in numeric or graphical fashion.
+
+We will proceed as follows:
+
+2. We will by briefly discussing the concept of metagenomics in general, and the 16S region of the bacterial genome in particular.
+
+1. We will next discuss sequencing the .fastq file format. We are talking about .fastq files to give you an idea of what is coming out of the sequencer, why there is uncertainty, and why this is all so darned complicated.
+
+3. We will walk through an example of processing a set of forward and reverse .fastq files to come up with something akin to an OTU table.
+
+4. We will next use our "OTU table" together with data about our samples to produce numerical and visual descriptive summaries of our samples. 
+
+5. We will end by again using this "OTU table" and our sample data to develop functional profiles of our samples.
+
+## Metagenomics
+
+_Genomics, Proteomics, Transcriptomics_
+
+- These focus on the *whole* of a *single* individual organism.
+- But organisms live in communities and interact.
+- To study a community, we need to study across the genomes of the individual organisms comprising it.
+
+_Metagenomics_
+
+- The study of metagenomes, genetic material sampled directly from a community in its natural environment.
+- Obviates the need for isolation and lab cultivation.
+
+There are several methods for characterizing metagenomes. Some of these involve sequencing amplified markers, "amplicons" of eukaryotic genomes. For bacteria and archaeae, these are typically highly conserved small subunits of the gene that encodes for ribosomal RNA, in particular the 5S, 16S, or 23S regions. For instance, the 16S rRNA unit, about 1500 base pairs in length, has 9 hypervariable regions. You can design an experiment so that you target one of those regions, or you can sequence the whole 16S region. Your choice of primers (and budget) will determine how much you sequence. 
+
+Alternatively you can perform whole genome sequencing (WGS), sometimes also called "shotgun" sequencing, to determine the whole bacterial genome. WGS is about 10 times more  expensive then 16S sequencing.
+
+_16S rRNA_
+
+Universal PCR primers are used to amplify this region. Primers have been designed to match highly conserved regions of this subunit. A 2-D representation of the 16S region for the *Thermus thermophilus*, an extremophile bacteria, can be found at (http://rna.ucsc.edu/rnacenter/images/figs/thermus_16s_2ndry.jpg)[http://rna.ucsc.edu/rnacenter/images/figs/thermus_16s_2ndry.jpg]
+
+_V4 Hypervariable Region_
+
+Universal primers:
+
+- Forward (515F): GTGCCAGCMGCCGCGGTAA
+- Reverse (805R): GGACTACHVGGGTWTCTAA
+- These will produce 288 - 290 bp amplicons covering the V4 region
+
+Sequences determined by Illumina MiSeq protocol
+
+- Should get nearly complete overlap of forward and reverse reads.
+- These can be merged to form a high quality consense base call at each position.
+- Then classify the merged reads.
+
+_Wait! I thought that the only letters allowed in the sequences are A, C, G, or T._ Yet I see M, H, V, and W in those primer sequences. What's up with that?
+
+It turns out that the Illumina is smart enough to know what it doesn't know. So if it knows the base, it calls it that way. OTOH, if it can only resolve the base call down to, say, the choice of 2 bases, it uses these other letters to designate that situation. These are called the IUPAC Ambiguity Codes, and you can see them here: (http://droog.gs.washington.edu/parc/images/iupac.html)[http://droog.gs.washington.edu/parc/images/iupac.html]. There is another IUPAC code not included on the table, and that is "-", which is used to indicate a gap, an often useful indicator for alignments.
+
+
+## Sequencing File Format
+
+In the files produced by the sequencer, every read represents an independent copy of source DNA in your sample. When the target material is sequenced, there are two main considerations: sequencing *breadth* and sequencing *depth*.
+
+- _Breadth_ refers to the extent to which you sequence the entire genome present. You want to be sure that you have sequence information for all areas of the target.
+- _Depth_ refers to how many reads on average cover each base pair of your target. This is also sometimes referred to as "coverage."
+
+- In 16s rRNA amplicon sequencing, the primers that you use determine breadth. 
+- If you don't have sufficient depth you may end up with incomplete or inconclusive results. OTOH, oversequencing raises costs. 
+
+
+
+### Illumina FASTQ Files
+
+#### File Naming Conventions:
+
+- NA10831_ATCACG_L002_R1_001.fastq.gz 
+- FA1_S1_L001_R1_001.fastq.gz 
+- Sample_Barcode/Index_Lane_Read#_Set#.fastq.gz
+
+#### Sequence Identifiers
+
+- \@EAS139:136:FC706VJ:2:5:1000:12850 1:N:18:ATCACG 
+- \@M00763:36:000000000-A8T0A:1:1101:14740:1627 1:N:0:1
+- \@Instrument : Run# : FlowcellID : Lane : Tile : X : Y Read : Filtered : Control# : Barcode/Index
+
+#### FASTQ File Format
+
+| 4 lines per read as follows: |
+|------------------------------|
+| \@sequence_id                |
+| sequence                     |
+| \+                           |
+| quality                      |
+|------------------------------|
+
+
+
+#### Example
+ 
+
+- Line1: \@M00763:36:000000000-A8T0A:1:1101:14740:1627 1:N:0:1
+
+- Line2: CCTACGGGAGGCAGCAGTGGGGAATATTGCACAATGGGGGAAACCCTGATGC AGCGACGCCGCGTGAGTGAAGAAGTATCTCGGTATGTAAAGCTCTATCAGCA GGAAAGATAATGACGGTACCTGACTAAGAAGCCCCGGCTAACTACGTGCCAG CAGCCGCGGTAATACGTAGGGGGCAAGCGTTATCCGGATTTACTGGGTGTAA AGGGAGCGTAGACGGCAGCGCAAGTCTGGAGTGAAATGCCGGGGCCCAACCC 
+CGGCCCTGCTTTGGAACCCGTCCCGCTCCAGTGCGGGCGGG
+
+- Line3: \+ 
+
+- Line 4: 88CCCGDBAF)===CEFFGGGG>GGGGGGCCFGGGGGDFGGGGDCFGGGFED CFG:\@CFCGGGGGGG?FFG9FFFGG9ECEFGGGDFGGGFFEFAFAFFEFECE F\@4AFD85CFFAA?7+C\@FFF<,A?,,,,,,AFFF77BFC,8>,>8D\@FFFF G,ACGGGCFG>\*57;\*6=C58:?<)9?:=:C\*;;\@C?3977\@C7E\*;29>/= +2\*\*)75):17)8\@EE3>D59>)>).)61)4>(6\*+/)\@F63639993??D1 :0)((,((.(.+)(()(-(\*-(-((-,,(.(.)),(-0)))
+
+#### Quality Scores
+
+The 4th line consists of the Phred scores for each base call. Each character is associated with a value between 0 and 40, and these are called the Quality scores or Q scores. The coding scheme can be found at (https://support.illumina.com/help/BaseSpace_OLH_009008/Content/Source/Informatics/BS/QualityScoreEncoding_swBS.htm)[https://support.illumina.com/help/BaseSpace_OLH_009008/Content/Source/Informatics/BS/QualityScoreEncoding_swBS.htm]  
+
+The relationship is as follows:
+
+\begin{equation}
+Q=-10*log(p)
+\end{equation}
+
+Or you can solve for p as follows:
+
+\begin{equation}
+p=10^{-Q/10}
+\end{equation}
+
+You can see from the table that letters have high Quality Scores. Let's look at the Phred score of I, which has a Q value of 40. 
+
+|                |
+|----------------|
+| Q=40           |
+| -Q/10 = -4     |
+| p = $10^{-4}$|
+| p = 0.0001     |
+
+
+In contrast, consider when the Phred score is "+", the Q value is 10, and p = 0.10.
+
+In summary, if you are looking at the .fastq file (which you can open with a text editor), letters are good, numbers are medium, and most anything else is of lesser quality.
+
+You want to know this because you may want to trim your sequences. Sometimes when a sequence is read, the first 10 or so sequences are of lesser quality. Also, reads deteriorate in quality towards the end of a sequence. Finally, forward reads are generally of better quality than their corresponding reverse reads.
+
+### Processing Sequencing Data: Overview
+
+1. Filter - remove low-quality reads and non-target sequences
+2. Trim - prune low-quality ends
+3. Assembly - correct overlapping bases
+4. Aggregate - combine similar reads
+5. Chimeras - remove chimeric reads
+
 ## Processing Sequencing Data with the DADA2 Pipeline
 
-Today we are going to go through the process of "feeding" a set of Illumina-sequenced paired-end .fastq files into the `dada2` package, with the goal of deriving a _sequence table_ in the end. A sequence table is akin to the ubiquitous OTU table, only it is at a much higher resolution. 
+Today we are going to go through the process of "feeding" a set of Illumina-sequenced paired-end .fastq files into the `dada2` package, with the goal of deriving a _sequence table_ in the end. The term "dada" stands for Divisive Amplicon Denoising Algorithm. This R package example uses 4 dada steps, 2 for the forward reads and 2 for the reverse reads, hence "dada2."
 
-We are using `dada2` because it infers sample sequences exactly, resolving differences of as little as one (1) nucleotide. It appears that `dada2` will not only provide higher resolution, it also performs better than two other major players in this field: mothur and QIIME (v1). But note that QIIME v2.1 now has a DADA2 step built into it, so it should now compete well with this package. 
+A sequence table is akin to the ubiquitous OTU table, only it is at a much higher resolution.  OTUs, or operational taxonomic units, is an operational term defined as sets of individual organisms that have been put together in groups according to their DNA similarity. OTUs are often used as proxies for "species". "Similarity" in this context is defined as differing by no more than a fixed dissimilarity threshold, typically set at 3%. But we are going to do better than 3% dissimilarity; we are headed to 100%. 
+
+We are using `dada2` because it infers sample sequences exactly, resolving differences of as little as one (1) nucleotide. Not only does `dada2` provide higher resolution, it also performs better than two other major players in this field: mothur and QIIME (v1). But note that QIIME v2.1 now has a DADA2 step built into it, so it should now compete well with this package. 
 
 For the moment, however, we are going to continue to use `dada2`, well, because. Because we are now expert R, RStudio, git and github users, that's why!!!
 
@@ -46,7 +192,21 @@ library(ShortRead); packageVersion("ShortRead")
 library(ggplot2); packageVersion("ggplot2")
 ```
 
-I have also downloaded the file used in the Mothur MiSeq SOP, as well as two RDP reference files. You will have to change the path in the next chunk to the path to where your files sit. Also if you are on a Windows machine, this will also look different. Let's make sure they are all in the proper place on my machine:
+There are some other packages we need:
+
+```{r}
+# Some more libraries we will call
+# Make sure you install them first from the console window
+# gridExtra and foreach install from CRAN
+# msa installs from bioconductor
+
+library(msa)
+library(foreach)
+library(gridExtra)
+```
+
+
+I have also downloaded the file used in the Mothur MiSeq SOP, as well as two RDP reference files. The Mothur MiSeq files contain data from an experiment in which the V4 region of the 16S rRNA gene in mice feces was sequenced.  You will have to change the path in the next chunk to the path to where your files sit. Also if you are on a Windows machine, this will also look different. Let's make sure they are all in the proper place on my machine:
 
 ```{r}
 # Set the path to the data files
@@ -61,7 +221,143 @@ OK, I see 38 .fastq files and the two RDP files. With the exception of a file na
 
 So now we are ready to use the `dada2` pipeline. We will first read in the names of the .fastq files. Then we will manipulate those names as character variables, using regular expressions to create lists of the forward and reverse read .fastq files in *matched* order.
 
+```{r}
 
+# Read in the names of the .fastq files
+
+fastqFiles <- fileNames[grepl(".fastq$", fileNames)]
+
+# Sort so that forward / reverse reads are in the same order
+
+fastqFiles <- sort(fastqFiles)
+
+# Get just the forward read files
+
+fileNameForwards <- fastqFiles[grepl("_R1", fastqFiles)]
+
+# Get just the reverse read files
+
+fileNameReverses <- fastqFiles[grepl("_R2", fastqFiles)]
+
+# Get the sample names, assuming file naming convention is: SAMPLENAME_XXX.fastq
+
+sample.names <- sapply(strsplit(fileNameForwards, "_"), `[`, 1)
+
+# Specify the full file path to the forward and reverse read.s
+
+fileNameForwards <- file.path(path, fileNameForwards)
+fileNameReverses <- file.path(path, fileNameReverses)
+  
+  
+
+
+
+
+```
+
+#### Important Note 3
+
+If you are using this workflow with your own data, you will probably need to modify the R chunk above, especially the assignment of sample names to the variable `sample.names`.
+
+#### End of Note
+
+### Quality Profiles of the Reads
+
+One of the points that we have repeatedly emphasized in this class is the importance of visualizing your data, and that process is still important with this type of data. Fortunately there is a great quality profile plot that you can generate with just a single command from `dada2`.
+
+```{r}
+# Visualize the quality profile of the first two files containing forward reads
+
+plotQualityProfile(fileNameForwards[[1]])
+plotQualityProfile(fileNameForwards[[2]])
+
+```
+
+We see here that the forward reads are really good quality. Callahan advises "trimming the last few nucleotides to avoid less well-controlled errors that can arise there." OTOH, Christopher Taylor, who runs the Metagenomics lab at LSU Health Sciences Center advises to always trim the first 10 reads. 
+
+Let's look at the reverse reads.
+
+```{r}
+# Visualize the quality profile of the first two files containing reverse reads
+
+plotQualityProfile(fileNameReverses[[1]])
+plotQualityProfile(fileNameReverses[[2]])
+```
+
+The quality of the reverse reads is subtantially worse, especially toward the end, a common phenomenon with Illumina paired-end sequencing. The dada algorithm incorporates error quality into the model, so it is robust to lower quality sequences, but trimming is still a good idea.
+
+If you are using your own data, make sure that you have good overlap, the more the better.
+
+#### Performing the Filtering and Trimming
+
+We will use typical filtering parameters.
+
+- `maxN = 0` -- `dada2` requires that there be no N's in a sequence
+- `truncQ = 2` -- truncate reads at the first instance of a quality less than or equal to \code{truncQ}#.
+- `maxEE` = 2 -- sets the maximum number of expected errors allowed in a read, which is a better filter than simply averaging quality scores.
+
+Let's jointly filter the forward and reverse reads with the fastqPairedFilter function.
+
+
+
+```{r}
+# Make a directory and filenames for the filtered fastqs
+
+filt.path <- file.path(path, "filtered")
+if(!file_test("-d", filt.path)) dir.create(filt.path)
+filtForwards <- file.path(filt.path, paste0(sample.names, "_F_filt.fastq.gz"))
+filtReverses <- file.path(filt.path, paste0(sample.names, "_R_file.fastq.gz"))
+
+# Now filter
+
+for (i in seq_along(fileNameForwards)) {
+  fastqPairedFilter(c(fileNameForwards[i], fileNameReverses[i]), 
+                      c(filtForwards[i], filtReverses[i]),
+                      truncLen=c(240,160),
+                      maxN = 0, maxEE = c(2,2),
+                      truncQ = 2, rm.phix=TRUE,
+                      compress=TRUE, verbose=TRUE)
+}
+
+
+```
+
+There are other filtering methods, and you can use them. However, for the later `mergePairs` step to work, you need to have the forward and reverse reads in matched order. The fastq files as they come off the Illumina have this property and `fastqPairedFilter` preserves it, but not all other filtering methods do so.
+
+#### Important Note 4
+
+If doing this with data that have not had the primers trimmed off, you can use the `trimleft` argument in the `fastqPairedFilter` call. For instance, if you used the 515F and 805R primers listed above, these are both 19 bp long, so you should trim the first 19 bp from both the forward and the reverse reads. Insert into  the command "trimLeft=c(19,19)", and let the trimming begin!
+
+#### End of Note
+
+### Dereplication
+
+You can gain further efficiencies by dereplicating the reads, ths is combining all identical sequences so that all you are left with is a list of "unique sequences" and a count of them, defined as the "abundance". Other pipelines can do this too to gain efficiency, but `dada2` retains a summary of the quality information associated with each unique sequence, developning a consensus quality profile as the average of the positional qualities from the dereplicated reads, which it then uses to inform the error model in the subsequent denoising step.
+
+```{r}
+# Dereplicate
+
+derepForwards <- derepFastq(filtForwards, verbose=TRUE)
+derepReverses <- derepFastq(filtReverses, verbose=TRUE)
+
+# Name the derep-class objects by the sample names
+names(derepForwards) <- sample.names
+names(derepReverses) <- sample.names
+```
+
+
+### Learn the Error Rates
+
+The `dada2` algorithm uses a parametric error model (`err`), and, of course, the amplicon dataset will have different error rates. The algorithm will learn its error model from the data by alternating estimation of error rates and composition of the sample until convergence of the sample on a jointly consistent solution (like the EM algorithm, if you happen to know that) (and if you don't, it does not matter).
+
+So we will run this joint inference 4 times. The first passes will be through the forward and reverse reads setting `selfConsist = TRUE`. The second passes will be through the forward and reverse reads with the learned error structure.
+
+First pass through Forward reads:
+
+```{r}
+dadaForwards.learn <- dada(derepForwards, err=NULL, selfConsist = TRUE, multithread=TRUE)
+dadaReverses.learn <- dada(derepReverses, err=NULL, selfConsist = TRUE, multithread=TRUE)
+```
 
 
 
