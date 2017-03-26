@@ -920,7 +920,8 @@ path</code></pre>
 ## [45] &quot;raw quality plots&quot;               &quot;rdp_species_assignment_14.fa.gz&quot;
 ## [47] &quot;rdp_train_set_14.fa&quot;             &quot;rdp_train_set_14.fa.gz&quot;         
 ## [49] &quot;stability.batch&quot;                 &quot;stability.files&quot;</code></pre>
-<pre class="r"><code>#taxa &lt;- assignTaxonomy(seqtab.nochim, &quot;rdp_train_set_14.fa.gz&quot;)
+<pre class="r"><code>reference_fasta &lt;- &quot;rdp_train_set_14.fa.gz&quot;
+#taxa &lt;- assignTaxonomy(seqtab.nochim, refFasta = reference_fasta)
 #unname(head(taxa))</code></pre>
 </div>
 </div>

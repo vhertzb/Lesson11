@@ -497,7 +497,8 @@ There are many training sets to use. GreenGenes is one such set, but it has not 
 # Assign taxonomy
 path
 list.files(path)
-#taxa <- assignTaxonomy(seqtab.nochim, "rdp_train_set_14.fa.gz")
+reference_fasta <- "rdp_train_set_14.fa.gz"
+#taxa <- assignTaxonomy(seqtab.nochim, refFasta = reference_fasta)
 #unname(head(taxa))
 ```
 
