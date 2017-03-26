@@ -649,7 +649,69 @@ names(derepReverses) &lt;- sample.names</code></pre>
 <div id="learn-the-error-rates" class="section level3">
 <h3>Learn the Error Rates</h3>
 <p>The <code>dada2</code> algorithm uses a parametric error model (<code>err</code>), and, of course, the amplicon dataset will have different error rates. The algorithm will learn its error model from the data by alternating estimation of error rates and composition of the sample until convergence of the sample on a jointly consistent solution (like the EM algorithm, if you happen to know that) (and if you don’t, it does not matter).</p>
-<p>Sp we forst</p>
+<p>So we will run this joint inference 4 times. The first passes will be through the forward and reverse reads setting <code>selfConsist = TRUE</code>. The second passes will be through the forward and reverse reads with the learned error structure. On the first pass, the algorithm starts with an initial guess, which is that the maximum possible error rates in these data, that is, the error rates if only the most abundant sequence is correct, and all the rest are errors. This is what happens when we set <code>err=NULL</code>.</p>
+<p>First pass through Forward reads:</p>
+<pre class="r"><code>dadaForwards.learn &lt;- dada(derepForwards, err=NULL, selfConsist = TRUE, multithread=TRUE)</code></pre>
+<pre><code>## Initial error matrix unspecified. Error rates will be initialized to the maximum possible estimate from this data.</code></pre>
+<pre><code>## Initializing error rates to maximum possible estimate.
+## Sample 1 - 7113 reads in 1979 unique sequences.
+## Sample 2 - 5299 reads in 1639 unique sequences.
+## Sample 3 - 5463 reads in 1477 unique sequences.
+## Sample 4 - 2914 reads in 904 unique sequences.
+## Sample 5 - 2941 reads in 939 unique sequences.
+## Sample 6 - 4312 reads in 1267 unique sequences.
+## Sample 7 - 6741 reads in 1756 unique sequences.
+## Sample 8 - 4560 reads in 1438 unique sequences.
+## Sample 9 - 15637 reads in 3590 unique sequences.
+## Sample 10 - 11413 reads in 2762 unique sequences.
+## Sample 11 - 12017 reads in 3021 unique sequences.
+## Sample 12 - 5032 reads in 1566 unique sequences.
+## Sample 13 - 18075 reads in 3707 unique sequences.
+## Sample 14 - 6250 reads in 1479 unique sequences.
+## Sample 15 - 4052 reads in 1195 unique sequences.
+## Sample 16 - 7369 reads in 1832 unique sequences.
+## Sample 17 - 4765 reads in 1183 unique sequences.
+## Sample 18 - 4871 reads in 1382 unique sequences.
+## Sample 19 - 6504 reads in 1709 unique sequences.
+## Sample 20 - 4314 reads in 897 unique sequences.
+##    selfConsist step 2 
+##    selfConsist step 3 
+##    selfConsist step 4 
+##    selfConsist step 5 
+## 
+## 
+## Convergence after  5  rounds.</code></pre>
+<pre class="r"><code>dadaReverses.learn &lt;- dada(derepReverses, err=NULL, selfConsist = TRUE, multithread=TRUE)</code></pre>
+<pre><code>## Initial error matrix unspecified. Error rates will be initialized to the maximum possible estimate from this data.</code></pre>
+<pre><code>## Initializing error rates to maximum possible estimate.
+## Sample 1 - 7113 reads in 1660 unique sequences.
+## Sample 2 - 5299 reads in 1349 unique sequences.
+## Sample 3 - 5463 reads in 1335 unique sequences.
+## Sample 4 - 2914 reads in 853 unique sequences.
+## Sample 5 - 2941 reads in 880 unique sequences.
+## Sample 6 - 4312 reads in 1286 unique sequences.
+## Sample 7 - 6741 reads in 1803 unique sequences.
+## Sample 8 - 4560 reads in 1265 unique sequences.
+## Sample 9 - 15637 reads in 3414 unique sequences.
+## Sample 10 - 11413 reads in 2522 unique sequences.
+## Sample 11 - 12017 reads in 2771 unique sequences.
+## Sample 12 - 5032 reads in 1415 unique sequences.
+## Sample 13 - 18075 reads in 3290 unique sequences.
+## Sample 14 - 6250 reads in 1390 unique sequences.
+## Sample 15 - 4052 reads in 1134 unique sequences.
+## Sample 16 - 7369 reads in 1635 unique sequences.
+## Sample 17 - 4765 reads in 1084 unique sequences.
+## Sample 18 - 4871 reads in 1161 unique sequences.
+## Sample 19 - 6504 reads in 1502 unique sequences.
+## Sample 20 - 4314 reads in 732 unique sequences.
+##    selfConsist step 2 
+##    selfConsist step 3 
+##    selfConsist step 4 
+##    selfConsist step 5 
+##    selfConsist step 6 
+## 
+## 
+## Convergence after  6  rounds.</code></pre>
 </div>
 </div>
 </div>

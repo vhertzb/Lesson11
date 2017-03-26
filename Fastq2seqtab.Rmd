@@ -350,7 +350,7 @@ names(derepReverses) <- sample.names
 
 The `dada2` algorithm uses a parametric error model (`err`), and, of course, the amplicon dataset will have different error rates. The algorithm will learn its error model from the data by alternating estimation of error rates and composition of the sample until convergence of the sample on a jointly consistent solution (like the EM algorithm, if you happen to know that) (and if you don't, it does not matter).
 
-So we will run this joint inference 4 times. The first passes will be through the forward and reverse reads setting `selfConsist = TRUE`. The second passes will be through the forward and reverse reads with the learned error structure.
+So we will run this joint inference 4 times. The first passes will be through the forward and reverse reads setting `selfConsist = TRUE`. The second passes will be through the forward and reverse reads with the learned error structure. On the first pass, the algorithm starts with an initial guess, which is that the maximum possible error rates in these data, that is, the error rates if only the most abundant sequence is correct, and all the rest are errors. This is what happens when we set `err=NULL`.
 
 First pass through Forward reads:
 
