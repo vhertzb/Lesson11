@@ -157,6 +157,12 @@ Today we are going to go through the process of "feeding" a set of Illumina-sequ
 
 A sequence table is akin to the ubiquitous OTU table, only it is at a much higher resolution.  OTUs, or operational taxonomic units, is an operational term defined as sets of individual organisms that have been put together in groups according to their DNA similarity. OTUs are often used as proxies for "species". "Similarity" in this context is defined as differing by no more than a fixed dissimilarity threshold, typically set at 3%. But we are going to do better than 3% dissimilarity; we are headed to 100%. 
 
+Why isn't 97% good enough?
+
+1. It still is low resolution, fiving genus level identification at best
+2. It tends to have a high false positive rate, with the number of OTUs much greater than actual richness.
+3. As you get more samples, the processing time scales up super-linearly.
+
 We are using `dada2` because it infers sample sequences exactly, resolving differences of as little as one (1) nucleotide. Not only does `dada2` provide higher resolution, it also performs better than two other major players in this field: mothur and QIIME (v1). But note that QIIME v2.1 now has a DADA2 step built into it, so it should now compete well with this package. 
 
 For the moment, however, we are going to continue to use `dada2`, well, because. Because we are now expert R, RStudio, git and github users, that's why!!!
@@ -491,7 +497,7 @@ There are many training sets to use. GreenGenes is one such set, but it has not 
 # Assign taxonomy
 path
 list.files(path)
-taxa <- assignTaxonomy(seqtab.nochim, "rdp_train_set_14.fa.gz")
-unname(head(taxa))
+#taxa <- assignTaxonomy(seqtab.nochim, "rdp_train_set_14.fa.gz")
+#unname(head(taxa))
 ```
 

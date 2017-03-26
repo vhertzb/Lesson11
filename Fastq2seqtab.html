@@ -278,6 +278,12 @@ p=10^{-Q/10}
 <h2>Processing Sequencing Data with the DADA2 Pipeline</h2>
 <p>Today we are going to go through the process of “feeding” a set of Illumina-sequenced paired-end .fastq files into the <code>dada2</code> package, with the goal of deriving a <em>sequence table</em> in the end. The term “dada” stands for Divisive Amplicon Denoising Algorithm. This R package example uses 4 dada steps, 2 for the forward reads and 2 for the reverse reads, hence “dada2.”</p>
 <p>A sequence table is akin to the ubiquitous OTU table, only it is at a much higher resolution. OTUs, or operational taxonomic units, is an operational term defined as sets of individual organisms that have been put together in groups according to their DNA similarity. OTUs are often used as proxies for “species”. “Similarity” in this context is defined as differing by no more than a fixed dissimilarity threshold, typically set at 3%. But we are going to do better than 3% dissimilarity; we are headed to 100%.</p>
+<p>Why isn’t 97% good enough?</p>
+<ol style="list-style-type: decimal">
+<li>It still is low resolution, fiving genus level identification at best</li>
+<li>It tends to have a high false positive rate, with the number of OTUs much greater than actual richness.</li>
+<li>As you get more samples, the processing time scales up super-linearly.</li>
+</ol>
 <p>We are using <code>dada2</code> because it infers sample sequences exactly, resolving differences of as little as one (1) nucleotide. Not only does <code>dada2</code> provide higher resolution, it also performs better than two other major players in this field: mothur and QIIME (v1). But note that QIIME v2.1 now has a DADA2 step built into it, so it should now compete well with this package.</p>
 <p>For the moment, however, we are going to continue to use <code>dada2</code>, well, because. Because we are now expert R, RStudio, git and github users, that’s why!!!</p>
 <div id="first-note-of-importance" class="section level4">
