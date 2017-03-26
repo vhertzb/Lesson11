@@ -495,10 +495,27 @@ There are many training sets to use. GreenGenes is one such set, but it has not 
 ```{r}
 
 # Assign taxonomy
+
+# First initialize random number generator for reproducibility
+
+set.seed(100)
+
 path
 list.files(path)
 reference_fasta <- "rdp_train_set_14.fa.gz"
 #taxa <- assignTaxonomy(seqtab.nochim, refFasta = reference_fasta)
 #unname(head(taxa))
+```
+
+### Species Assignment
+
+We can also use the RDP species assignment dataset to do exactly that, that is, to assign species.
+
+```{r}
+
+# Assign species
+
+#genus.species <- assignSpecies(seqtab.nochim, "rdp_species_assignment_14.fa.gz")
+
 ```
 

@@ -892,6 +892,11 @@ seqtab.nochim &lt;- removeBimeraDenovo(seqtab, verbose=TRUE)</code></pre>
 <p>Most people want to know the names of the organisms associated with the sequence variants, and so we want to classify them taxonomically. The package will use a classifier for this purpose, taking a set of sequences and a training set of taxonomically classified sequences, and outputs taxonomic assignments with at least <code>minBoot</code> bootstrap confidence.</p>
 <p>There are many training sets to use. GreenGenes is one such set, but it has not been updated in 3 years. SILVA and UNITED ITS are others, the latter being used for fungi. We are going to use a training set from the Ribosomal Database Project. You should have downloaded that earlier and it should be sitting in the same folder as the original forward and reverse read files.</p>
 <pre class="r"><code># Assign taxonomy
+
+# First initialize random number generator for reproducibility
+
+set.seed(100)
+
 path</code></pre>
 <pre><code>## [1] &quot;~/Documents/NRSG_741/MiSeqData/MiSeq_SOP&quot;</code></pre>
 <pre class="r"><code>list.files(path)</code></pre>
@@ -923,6 +928,13 @@ path</code></pre>
 <pre class="r"><code>reference_fasta &lt;- &quot;rdp_train_set_14.fa.gz&quot;
 #taxa &lt;- assignTaxonomy(seqtab.nochim, refFasta = reference_fasta)
 #unname(head(taxa))</code></pre>
+</div>
+<div id="species-assignment" class="section level3">
+<h3>Species Assignment</h3>
+<p>We can also use the RDP species assignment dataset to do exactly that, that is, to assign species.</p>
+<pre class="r"><code># Assign species
+
+#genus.species &lt;- assignSpecies(seqtab.nochim, &quot;rdp_species_assignment_14.fa.gz&quot;)</code></pre>
 </div>
 </div>
 </div>
