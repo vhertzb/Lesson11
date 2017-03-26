@@ -34,7 +34,7 @@ _Metagenomics_
 - The study of metagenomes, genetic material sampled directly from a community in its natural environment.
 - Obviates the need for isolation and lab cultivation.
 
-There are several methods for characterizing metagenomes. Some of these involve sequencing amplified markers, "amplicons" of eukaryotic genomes. For bacteria and archaeae, these are typically highly conserved small subunits of the gene that encodes for ribosomal RNA, in particular the 5S, 16S, or 23S regions. For instance, the 16S rRNA unit, about 1500 base pairs in length, has 9 hypervariable regions. You can design an experiment so that you target one of those regions, or you can sequence the whole 16S region. Your choice of primers (and budget) will determine how much you sequence. 
+There are several methods for characterizing metagenomes. Some of these involve sequencing amplified markers, "amplicons" of eukaryotic genomes. For bacteria and archaeae, these are typically highly conserved small subunits of the gene that encodes for ribosomal RNA, in particular the 5S, 16S, 18Sm or 23S regions. For instance, the 16S rRNA unit, about 1500 base pairs in length, has 9 hypervariable regions. For fungi, the ITS unit serves this purpose. You can design an experiment so that you target one of those regions, or you can sequence the whole 16S region. Your choice of primers (and budget) will determine how much you sequence. 
 
 Alternatively you can perform whole genome sequencing (WGS), sometimes also called "shotgun" sequencing, to determine the whole bacterial genome. WGS is about 10 times more  expensive then 16S sequencing.
 
@@ -192,20 +192,6 @@ library(ShortRead); packageVersion("ShortRead")
 library(ggplot2); packageVersion("ggplot2")
 ```
 
-There are some other packages we need:
-
-```{r}
-# Some more libraries we will call
-# Make sure you install them first from the console window
-# gridExtra and foreach install from CRAN
-# msa installs from bioconductor
-
-library(msa)
-library(foreach)
-library(gridExtra)
-```
-
-
 I have also downloaded the file used in the Mothur MiSeq SOP, as well as two RDP reference files. The Mothur MiSeq files contain data from an experiment in which the V4 region of the 16S rRNA gene in mice feces was sequenced.  You will have to change the path in the next chunk to the path to where your files sit. Also if you are on a Windows machine, this will also look different. Let's make sure they are all in the proper place on my machine:
 
 ```{r}
@@ -345,14 +331,18 @@ names(derepForwards) <- sample.names
 names(derepReverses) <- sample.names
 ```
 
+The above step takes a bit.
 
+#### If using your own data
+
+If you have a a big dataset, get the initial error rate estimates from a subsample of your data.
 ### Learn the Error Rates
 
 The `dada2` algorithm uses a parametric error model (`err`), and, of course, the amplicon dataset will have different error rates. The algorithm will learn its error model from the data by alternating estimation of error rates and composition of the sample until convergence of the sample on a jointly consistent solution (like the EM algorithm, if you happen to know that) (and if you don't, it does not matter).
 
 So we will run this joint inference 4 times. The first passes will be through the forward and reverse reads setting `selfConsist = TRUE`. The second passes will be through the forward and reverse reads with the learned error structure. On the first pass, the algorithm starts with an initial guess, which is that the maximum possible error rates in these data, that is, the error rates if only the most abundant sequence is correct, and all the rest are errors. This is what happens when we set `err=NULL`.
 
-First pass through Forward reads:
+Let's take a 5 minute break while we take the first pass through the Forward reads then the Reverse reads:
 
 ```{r}
 dadaForwards.learn <- dada(derepForwards, err=NULL, selfConsist = TRUE, multithread=TRUE)
@@ -360,4 +350,148 @@ dadaReverses.learn <- dada(derepReverses, err=NULL, selfConsist = TRUE, multithr
 ```
 
 
+Now let's get the initial error estimates:
+
+```{r}
+
+# Store initial error estimates for Forward reads
+
+errForwards <- dadaForwards.learn[[1]]$err_out
+
+# Now for the Reverse reads
+
+errReverses <- dadaReverses.learn[[1]]$err_out
+
+```
+
+Finally it is always worthwhile to visualize the estimated error rates:
+
+```{r}
+# Plot the estimated error rates for the Forward reads
+
+plotErrors(dadaForwards.learn[[1]], nominalQ=TRUE)
+
+# And for the Reverse reads
+
+plotErrors(dadaReverses.learn[[1]], nominalQ = TRUE)
+
+
+```
+
+The error for each possible type of transition (i.e., A -> C, A -> T, ..., T -> G) are shown. The black points are the observed error rates for each consensus quality score. The black line shows the estimated error rates after convergence. The red line is the error rates expected under the nominal definition of the Q value. You see that the black line (estimated rates) fots the observed rates well, and the error rates drop with increased quality as expected. So all is looking good and we proceed.
+
+### Sample Inference
+
+We are now ready to infer the sequence variants in each sample (second dada pass)
+
+```{r}
+# First with the Forward reads
+
+dadaForwards <- dada(derepForwards, err = errForwards, multithread = TRUE)
+
+# Then with the Reverse reads
+
+dadaReverses <- dada(derepReverses, err = errReverses, multithread = TRUE)
+
+# Inspect the dada-class objects returned by the dada function
+
+dadaForwards[[1]]
+dadaReverses[[1]]
+
+```
+
+We can see that the algorithm has inferred 128 unique sequence variants from the forward reads and 116 from the reverse reads. 
+
+### Merge Paired Reads
+
+We can eliminate further spurious sequence variants by merging overlapping reads. The core function is `mergePairs` and it depends on the forward and reverse reads being in matching order at the time they were dereplicated.
+
+```{r}
+
+# Merge the denoised forward and reverse reads
+
+mergedPairs <- mergePairs(dadaForwards, derepForwards, dadaReverses, derepReverses, verbose = TRUE )
+
+# Inspect the merged data.frame from the first sample
+
+head(mergedPairs[[1]])
+
+```
+
+We now have a `data.frame` object for each sample with the merged `$sequence`, its `abundance`, and the indices of the merged `$forward` and `$reverse` denoised sequences. Pair reads that did not precisely overlap have been removed by the `mergePairs` function.
+
+#### Important Note 5
+
+
+If doing this with your own data, most of your reads should successfully merge. If this is not the case, you will need to revisit some upstream parameters. In particular, make sure you did not trim away any overlap between reads.
+
+#### End of Note
+
+### Sequence Table Construction
+
+We will now construct the sequence table, this being analogous to the "OTU table" produced by other methods.
+
+```{r}
+
+# Construct sequence table
+
+seqtab <- makeSequenceTable(mergedPairs[names(mergedPairs) != "Mock"])
+
+# Consider the table
+
+dim(seqtab)
+class(seqtab)
+
+# Inspect the distribution of sequence lengths
+
+table(nchar(getSequences(seqtab)))
+
+
+```
+
+We see that the sequence table is a `matrix` with rows corresponding to and named by the samples, and columns corresponding to (and named by) the sequence variants. We also see that the lengths of all of the sequences fall in the range expected for V4 amplicons.
+
+#### Important Note 6
+
+If working with your own data you may find sequences that are much longer or much shorter than expected. These may be the result of non-specific priming, and you should consider removing them. Use the command `seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% seq(250, 256)]`.
+
+#### End of Note
+
+### Remove Chimeras
+
+So far we have let the `dada` function remove substitution errors and indel errors, but chimeras remain. The accuracy of the sequences after denoising makes chimera identification easier than if we had done that earlier with "fuzzier" sequences because all sequences now can be exactly reconstructed as a bimera (two-parent chimera) from more abundant sequences.
+
+```{r}
+
+# Remove chimeric sequences
+
+seqtab.nochim <- removeBimeraDenovo(seqtab, verbose=TRUE)
+dim(seqtab.nochim)
+table(nchar(getSequences(seqtab.nochim)))
+sum(seqtab.nochim)/sum(seqtab)
+
+```
+
+The fraction of chimeras can be substantial. In this example, chimeras account for 63/274 unique sequence variants, or about 23% of them, but these variants account for only about 4% of the total sequence reads.
+
+#### Important Note 7 
+
+Most of the _reads_ should remain after chimera removal, although it is not uncommon for a majority of _sequence variants_ to be removed. If most of your reads are removed as chimeric, you may need to revisit upstream processing. In almost all cases this is caused by primer sequences with ambiguous nucleotides that were not removed prior to beginning the DADA2 pipeline.
+
+#### End of Note
+
+### Assign Taxonomy
+
+Most people want to know the names of the organisms associated with the sequence variants, and so we want to classify them taxonomically. The package will use a classifier for this purpose, taking a set of sequences and a training set of taxonomically classified sequences, and outputs taxonomic assignments with at least `minBoot` bootstrap confidence. 
+
+There are many training sets to use. GreenGenes is one such set, but it has not been updated in 3 years. SILVA and UNITED ITS are others, the latter being used for fungi. We are going to use a training set from the Ribosomal Database Project. You should have downloaded that earlier and it should be sitting in the same folder as the original forward and reverse read files.
+
+```{r}
+
+# Assign taxonomy
+path
+list.files(path)
+#taxa <- assignTaxonomy(seqtab.nochim, "rdp_train_set_14.fa.gz")
+#unname(head(taxa))
+```
 
