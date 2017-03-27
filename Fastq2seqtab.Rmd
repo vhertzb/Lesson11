@@ -326,7 +326,7 @@ If doing this with data that have not had the primers trimmed off, you can use t
 
 ### Dereplication
 
-You can gain further efficiencies by dereplicating the reads, ths is combining all identical sequences so that all you are left with is a list of "unique sequences" and a count of them, defined as the "abundance". Other pipelines can do this too to gain efficiency, but `dada2` retains a summary of the quality information associated with each unique sequence, developning a consensus quality profile as the average of the positional qualities from the dereplicated reads, which it then uses to inform the error model in the subsequent denoising step.
+You can gain further efficiencies by dereplicating the reads, ths is combining all identical sequences so that all you are left with is a list of "unique sequences" and a count of them, defined as the "abundance". Other pipelines can do this too to gain efficiency, but `dada2` retains a summary of the quality information associated with each unique sequence, developing a consensus quality profile as the average of the positional qualities from the dereplicated reads, which it then uses to inform the error model in the subsequent denoising step.
 
 ```{r}
 # Dereplicate
@@ -598,3 +598,72 @@ ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE),
 ps
 ```
 
+So we are now ready to use `phyloseq`. I will show you a few things you can do with these data. In our next session I will show you much much more.
+
+### Diversity in Microbial Ecology
+
+A key concept in ecology in general, microbial ecology and microbiome research in particular is that of *diversity.* Often the term "species diversity" is used, although sometimes we do not have species level resolution to the species level. We can conceive of diversity at each taxonomic level, that is, genus diversity, family diversity, etc.
+
+Whatever the level, the term $\alpha$-diversity is used to denote diversity in an individual setting. In microbiome studies, this typically means for each experimental unit measured, that is, person, animal, etc., the diversity within that experimental unit. Diversity at this level consists of two parts: *richness* and *evenness*. 
+
+- _Richness_: How many different types of units (e.g., species) are there?
+- _Evenness_: How equal are the abundances of the different types?
+
+Richness is a simple count. 
+
+There are several different measures of evenness. One common measure is the *Shannon Index* defined as 
+
+\begin{equation}
+H=-\sum_{i=1}^R p_i ln(p_i)
+\end{equation}
+
+Where R is the number of different types of units, and $p_i$ is the proportion of units in type $i$. When all types are equally common, then $p_i=R, \all i$, and H = ln(R). If one type dominates at the expense of all others, then H --> 0. If there is only one type present, then H = 0.
+
+Another common measure is the *Simpson Index* defined as 
+
+\begin{equation}
+\lambda = \sum_{i=1}^R p_i^2
+\end{equation}
+
+When all types are equally abundant, then $\lambda = 1/R$, and if one types dominates then $\lambda$ --> 1.
+
+Let's see what these animals look like interms of individual $\alpha$-diversity measures.
+
+```{r}
+# Plot alpha-diversity
+plot_richness(ps, x="Day", measures = c("Shannon", "Simpson"), color = 
+                "When")  +
+        theme_bw()
+```
+
+### Ordinate
+
+Another type of diversity is that between units: how dissimilar or different are they? Ecologists will do what is called *ordination* in which they will assess distances or dissimilarities between individuals, then describe the variability in those assessments. Recall our last lesson in which we talked about non-metrical Multidimensional Scaling (nMDS). This is just one applicaiton of nMDS.
+
+Let's see how these fall when we ordinate using the Bray-Curtis dissimilarity index.
+
+```{r}
+# Ordinate with Bray-Curtis
+
+ord.nmds.bray <- ordinate(ps, method = "NMDS", distance = "bray")
+plot_ordination(ps, or.nmds.bray, color = "When", title = "Bray NMDS")
+```
+
+We see that ordination picks out a separation between the early and late samples.
+
+### Bar Plots   
+
+Another common practice in microbiome research is to determine the top N categories at some taxonomic level. One of my collaborators calls this the production of the "Greatest Hits."
+
+Let's pick out the top 20 OTUs, then see how they fall in individuals, colored by Family, and grouped by early or late.
+
+```{r}
+# Create bar plots for top 20 OTUs
+
+top20 <- names(sort(taxa_sums(ps), decreasing = TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+plot_bar(ps.top20, x="Day", fill="Family") + facet_wrap(~When, scales="free_x")
+```
+
+That wraps it up for today. Next week we will show more `phyloseq` and then get into functional predictions.
