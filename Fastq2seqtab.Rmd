@@ -9,6 +9,8 @@ output: html_document
 
 Most of you are here today because you have an interest in the microbiome, that "new organ" comprising the trillions of microbes that live in and on us. Today we are going to talk about how to identify these organisms isolated from a sample by sequencing a portion of the genetic material present, lining these up into counts of organisms, then using these data to summarize the microbes present in numeric or graphical fashion.
 
+Before we get to that I just have one short message: (https://www.youtube.com/watch?v=htbeJhtFAXw)[https://www.youtube.com/watch?v=htbeJhtFAXw]
+
 We will proceed as follows:
 
 2. We will by briefly discussing the concept of metagenomics in general, and the 16S region of the bacterial genome in particular.
@@ -499,12 +501,12 @@ There are many training sets to use. GreenGenes is one such set, but it has not 
 # First initialize random number generator for reproducibility
 
 set.seed(100)
-
+getwd()
 path
 list.files(path)
-reference_fasta <- "rdp_train_set_14.fa.gz"
-#taxa <- assignTaxonomy(seqtab.nochim, refFasta = reference_fasta)
-#unname(head(taxa))
+reference_fasta <- "~/Documents/NRSG_741/MiSeqData/MiSeq_SOP/rdp_train_set_14.fa.gz"
+taxa <- assignTaxonomy(seqtab.nochim, refFasta = reference_fasta)
+unname(head(taxa))
 ```
 
 ### Species Assignment
@@ -515,7 +517,7 @@ We can also use the RDP species assignment dataset to do exactly that, that is, 
 
 # Assign species
 
-#genus.species <- assignSpecies(seqtab.nochim, "rdp_species_assignment_14.fa.gz")
+genus.species <- assignSpecies(seqtab.nochim, "~/Documents/NRSG_741/MiSeqData/MiSeq_SOP/rdp_species_assignment_14.fa.gz")
 
 ```
 
@@ -555,6 +557,44 @@ detach("package:phangorn", unload=TRUE)
 
 ```
 
+We will be viewing the tree below.
+
 ### Handoff to `phyloseq`
 
-Our next activity will be to hand off the data to the `phyloseq` package for analysis. The R chunks for that will have to wait until we get the taxonomy assignment working.
+Our next activity will be to hand off the data to the `phyloseq` package for analysis. This package requires three items: the "OTUtable," the taxonomy table, and data about the samples. The first two items are directly available at the end of your `dada2`run, and you can import the latter as a .csv file. In the case of the data that are considered here, we can calculate the derive the gender (G), mouse subject number (X), and day post-weaning (Y) directly from the file name, which has the form GXDY.
+
+```{r}
+# Create a data frame for the sample data
+samples.out <- rownames(seqtab.nochim)
+
+# Create subject, gender, and day variables
+subject <- sapply(strsplit(samples.out, "D"), `[`, 1)
+gender <- substr(subject,1,1)
+subject <- substr(subject, 2, 999)
+day <- as.integer(sapply(strsplit(samples.out, "D"), `[`, 2))
+
+# Combine into dataframe
+samdf <- data.frame(Subject = subject, Gender = gender, Day = day)
+
+#Create indicator of early or late day of post-weaning
+samdf$When <- "Early"
+samdf$When[samdf$Day > 100] <- "Late"
+
+# Assign rownames to the dataframe == these will be the same as the rownames of the "OTUtable"
+rownames(samdf) <- samples.out
+```
+
+Now that we have our sample data, let's create the phyloseq object.
+
+```{r}
+library(phyloseq)
+
+# Create phyloseq object
+ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
+               sample_data(samdf),
+               tax_table(taxa))
+
+# Describe it
+ps
+```
+

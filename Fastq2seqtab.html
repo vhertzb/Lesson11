@@ -126,6 +126,7 @@ $(document).ready(function () {
 <div id="analyzing-microbiome-data" class="section level1">
 <h1>Analyzing Microbiome Data</h1>
 <p>Most of you are here today because you have an interest in the microbiome, that “new organ” comprising the trillions of microbes that live in and on us. Today we are going to talk about how to identify these organisms isolated from a sample by sequencing a portion of the genetic material present, lining these up into counts of organisms, then using these data to summarize the microbes present in numeric or graphical fashion.</p>
+<p>Before we get to that I just have one short message: (<a href="https://www.youtube.com/watch?v=htbeJhtFAXw" class="uri">https://www.youtube.com/watch?v=htbeJhtFAXw</a>)[<a href="https://www.youtube.com/watch?v=htbeJhtFAXw" class="uri">https://www.youtube.com/watch?v=htbeJhtFAXw</a>]</p>
 <p>We will proceed as follows:</p>
 <ol start="2" style="list-style-type: decimal">
 <li><p>We will by briefly discussing the concept of metagenomics in general, and the 16S region of the bacterial genome in particular.</p></li>
@@ -896,8 +897,9 @@ seqtab.nochim &lt;- removeBimeraDenovo(seqtab, verbose=TRUE)</code></pre>
 # First initialize random number generator for reproducibility
 
 set.seed(100)
-
-path</code></pre>
+getwd()</code></pre>
+<pre><code>## [1] &quot;/Users/vicki/Documents/NRSG_741/Lesson11&quot;</code></pre>
+<pre class="r"><code>path</code></pre>
 <pre><code>## [1] &quot;~/Documents/NRSG_741/MiSeqData/MiSeq_SOP&quot;</code></pre>
 <pre class="r"><code>list.files(path)</code></pre>
 <pre><code>##  [1] &quot;F3D0_S188_L001_R1_001.fastq&quot;     &quot;F3D0_S188_L001_R2_001.fastq&quot;    
@@ -925,16 +927,30 @@ path</code></pre>
 ## [45] &quot;raw quality plots&quot;               &quot;rdp_species_assignment_14.fa.gz&quot;
 ## [47] &quot;rdp_train_set_14.fa&quot;             &quot;rdp_train_set_14.fa.gz&quot;         
 ## [49] &quot;stability.batch&quot;                 &quot;stability.files&quot;</code></pre>
-<pre class="r"><code>reference_fasta &lt;- &quot;rdp_train_set_14.fa.gz&quot;
-#taxa &lt;- assignTaxonomy(seqtab.nochim, refFasta = reference_fasta)
-#unname(head(taxa))</code></pre>
+<pre class="r"><code>reference_fasta &lt;- &quot;~/Documents/NRSG_741/MiSeqData/MiSeq_SOP/rdp_train_set_14.fa.gz&quot;
+taxa &lt;- assignTaxonomy(seqtab.nochim, refFasta = reference_fasta)
+unname(head(taxa))</code></pre>
+<pre><code>##      [,1]       [,2]            [,3]          [,4]           
+## [1,] &quot;Bacteria&quot; &quot;Bacteroidetes&quot; &quot;Bacteroidia&quot; &quot;Bacteroidales&quot;
+## [2,] &quot;Bacteria&quot; &quot;Bacteroidetes&quot; &quot;Bacteroidia&quot; &quot;Bacteroidales&quot;
+## [3,] &quot;Bacteria&quot; &quot;Bacteroidetes&quot; &quot;Bacteroidia&quot; &quot;Bacteroidales&quot;
+## [4,] &quot;Bacteria&quot; &quot;Bacteroidetes&quot; &quot;Bacteroidia&quot; &quot;Bacteroidales&quot;
+## [5,] &quot;Bacteria&quot; &quot;Bacteroidetes&quot; &quot;Bacteroidia&quot; &quot;Bacteroidales&quot;
+## [6,] &quot;Bacteria&quot; &quot;Bacteroidetes&quot; &quot;Bacteroidia&quot; &quot;Bacteroidales&quot;
+##      [,5]                 [,6]         
+## [1,] &quot;Porphyromonadaceae&quot; NA           
+## [2,] &quot;Porphyromonadaceae&quot; &quot;Barnesiella&quot;
+## [3,] &quot;Porphyromonadaceae&quot; &quot;Barnesiella&quot;
+## [4,] &quot;Porphyromonadaceae&quot; &quot;Barnesiella&quot;
+## [5,] &quot;Bacteroidaceae&quot;     &quot;Bacteroides&quot;
+## [6,] &quot;Porphyromonadaceae&quot; NA</code></pre>
 </div>
 <div id="species-assignment" class="section level3">
 <h3>Species Assignment</h3>
 <p>We can also use the RDP species assignment dataset to do exactly that, that is, to assign species.</p>
 <pre class="r"><code># Assign species
 
-#genus.species &lt;- assignSpecies(seqtab.nochim, &quot;rdp_species_assignment_14.fa.gz&quot;)</code></pre>
+genus.species &lt;- assignSpecies(seqtab.nochim, &quot;~/Documents/NRSG_741/MiSeqData/MiSeq_SOP/rdp_species_assignment_14.fa.gz&quot;)</code></pre>
 </div>
 <div id="construct-a-phylogenetic-tree" class="section level3">
 <h3>Construct a Phylogenetic Tree</h3>
@@ -1152,7 +1168,7 @@ alignment &lt;- AlignSeqs(DNAStringSet(seqs), anchor=NA)</code></pre>
   |                                                                       
   |=================================================================| 100%
 ## 
-## Time difference of 0.32 secs
+## Time difference of 0.3 secs
 ## 
 ## Clustering into groups by similarity:
 ## 
@@ -1359,7 +1375,7 @@ alignment &lt;- AlignSeqs(DNAStringSet(seqs), anchor=NA)</code></pre>
   |                                                                       
   |=================================================================| 100%
 ## 
-## Time difference of 0.09 secs
+## Time difference of 0.08 secs
 ## 
 ## Aligning Sequences:
 ## 
@@ -1566,7 +1582,7 @@ alignment &lt;- AlignSeqs(DNAStringSet(seqs), anchor=NA)</code></pre>
   |                                                                       
   |=================================================================| 100%
 ## 
-## Time difference of 0.84 secs
+## Time difference of 0.79 secs
 ## 
 ## Determining distance matrix based on alignment:
 ## 
@@ -1980,7 +1996,7 @@ alignment &lt;- AlignSeqs(DNAStringSet(seqs), anchor=NA)</code></pre>
   |                                                                       
   |=================================================================| 100%
 ## 
-## Time difference of 0.08 secs
+## Time difference of 0.07 secs
 ## 
 ## Realigning Sequences:
 ## 
@@ -2187,7 +2203,7 @@ alignment &lt;- AlignSeqs(DNAStringSet(seqs), anchor=NA)</code></pre>
   |                                                                       
   |=================================================================| 100%
 ## 
-## Time difference of 0.51 secs</code></pre>
+## Time difference of 0.52 secs</code></pre>
 <p>Now that the sequences are aligned we can use the <code>phanghorn</code> package to construct the tree.</p>
 <pre class="r"><code>library(phangorn)</code></pre>
 <pre><code>## Loading required package: ape</code></pre>
@@ -2211,10 +2227,56 @@ fitGTR &lt;- update(fit, k=4, inv=0.2)
 fitGTR &lt;- optim.pml(fitGTR, model=&quot;GTR&quot;, optInv=TRUE, optGamma=TRUE, 
                     rearrangement = &quot;stochastic&quot;, control=pml.control(trace=0))
 detach(&quot;package:phangorn&quot;, unload=TRUE)</code></pre>
+<p>We will be viewing the tree below.</p>
 </div>
 <div id="handoff-to-phyloseq" class="section level3">
 <h3>Handoff to <code>phyloseq</code></h3>
-<p>Our next activity will be to hand off the data to the <code>phyloseq</code> package for analysis. The R chunks for that will have to wait until we get the taxonomy assignment working.</p>
+<p>Our next activity will be to hand off the data to the <code>phyloseq</code> package for analysis. This package requires three items: the “OTUtable,” the taxonomy table, and data about the samples. The first two items are directly available at the end of your <code>dada2</code>run, and you can import the latter as a .csv file. In the case of the data that are considered here, we can calculate the derive the gender (G), mouse subject number (X), and day post-weaning (Y) directly from the file name, which has the form GXDY.</p>
+<pre class="r"><code># Create a data frame for the sample data
+samples.out &lt;- rownames(seqtab.nochim)
+
+# Create subject, gender, and day variables
+subject &lt;- sapply(strsplit(samples.out, &quot;D&quot;), `[`, 1)
+gender &lt;- substr(subject,1,1)
+subject &lt;- substr(subject, 2, 999)
+day &lt;- as.integer(sapply(strsplit(samples.out, &quot;D&quot;), `[`, 2))
+
+# Combine into dataframe
+samdf &lt;- data.frame(Subject = subject, Gender = gender, Day = day)
+
+#Create indicator of early or late day of post-weaning
+samdf$When &lt;- &quot;Early&quot;
+samdf$When[samdf$Day &gt; 100] &lt;- &quot;Late&quot;
+
+# Assign rownames to the dataframe == these will be the same as the rownames of the &quot;OTUtable&quot;
+rownames(samdf) &lt;- samples.out</code></pre>
+<p>Now that we have our sample data, let’s create the phyloseq object.</p>
+<pre class="r"><code>library(phyloseq)</code></pre>
+<pre><code>## 
+## Attaching package: 'phyloseq'</code></pre>
+<pre><code>## The following object is masked from 'package:SummarizedExperiment':
+## 
+##     distance</code></pre>
+<pre><code>## The following object is masked from 'package:Biobase':
+## 
+##     sampleNames</code></pre>
+<pre><code>## The following object is masked from 'package:GenomicRanges':
+## 
+##     distance</code></pre>
+<pre><code>## The following object is masked from 'package:IRanges':
+## 
+##     distance</code></pre>
+<pre class="r"><code># Create phyloseq object
+ps &lt;- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
+               sample_data(samdf),
+               tax_table(taxa))
+
+# Describe it
+ps</code></pre>
+<pre><code>## phyloseq-class experiment-level object
+## otu_table()   OTU Table:         [ 211 taxa and 19 samples ]
+## sample_data() Sample Data:       [ 19 samples by 4 sample variables ]
+## tax_table()   Taxonomy Table:    [ 211 taxa by 6 taxonomic ranks ]</code></pre>
 </div>
 </div>
 </div>
