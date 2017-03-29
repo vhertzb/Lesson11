@@ -645,8 +645,8 @@ Let's see how these fall when we ordinate using the Bray-Curtis dissimilarity in
 ```{r}
 # Ordinate with Bray-Curtis
 
-ord.nmds.bray <- ordinate(ps, method = "NMDS", distance = "bray")
-plot_ordination(ps, or.nmds.bray, color = "When", title = "Bray NMDS")
+ord.nmds.bray <- ordinate(ps, method="NMDS", distance="bray")
+plot_ordination(ps, ord.nmds.bray, color="When", title="Bray NMDS")
 ```
 
 We see that ordination picks out a separation between the early and late samples.
