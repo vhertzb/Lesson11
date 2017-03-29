@@ -1,0 +1,27 @@
+---
+title: "HW7"
+author: "Vicki Hertzberg"
+date: "3/29/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Recall the NHANES dataset that we used in Lesson 10. 
+
+1. In the dataset there is a discrete variable called SleepTrouble indicating whether each participant has trouble sleeping or not. You are going to build a set of classifiers for this dependent variable. You may use any (set of) independent variable(s) you like except for the variable callsed SleepHrsNight. 
+
+For each of the model types (null model, logistic regression, decision tree, random forest, k-nearest neighbor) do the following:
+
+1A. Build the classifier.
+
+1B. Report its effectiveness on the NHANES dataset.
+
+1C. Make an appropriate visualization of this model.
+
+1D. Interpret the results. What have you learned about people's sleeping habits?
+
+2. Repeat problem 1 except now you are to use the quantitative variable called SleepHrsNight. The model types are as follows: null model, multiple regression, regression tree, random forest.
+
