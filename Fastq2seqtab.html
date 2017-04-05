@@ -1161,7 +1161,7 @@ alignment &lt;- AlignSeqs(DNAStringSet(seqs), anchor=NA)</code></pre>
   |                                                                       
   |=================================================================| 100%
 ## 
-## Time difference of 0.29 secs
+## Time difference of 0.32 secs
 ## 
 ## Clustering into groups by similarity:
 ## 
@@ -1575,7 +1575,7 @@ alignment &lt;- AlignSeqs(DNAStringSet(seqs), anchor=NA)</code></pre>
   |                                                                       
   |=================================================================| 100%
 ## 
-## Time difference of 0.74 secs
+## Time difference of 0.82 secs
 ## 
 ## Determining distance matrix based on alignment:
 ## 
@@ -1782,7 +1782,7 @@ alignment &lt;- AlignSeqs(DNAStringSet(seqs), anchor=NA)</code></pre>
   |                                                                       
   |=================================================================| 100%
 ## 
-## Time difference of 0.02 secs
+## Time difference of 0.03 secs
 ## 
 ## Reclustering into groups by similarity:
 ## 
@@ -1989,7 +1989,7 @@ alignment &lt;- AlignSeqs(DNAStringSet(seqs), anchor=NA)</code></pre>
   |                                                                       
   |=================================================================| 100%
 ## 
-## Time difference of 0.06 secs
+## Time difference of 0.08 secs
 ## 
 ## Realigning Sequences:
 ## 
@@ -2196,7 +2196,7 @@ alignment &lt;- AlignSeqs(DNAStringSet(seqs), anchor=NA)</code></pre>
   |                                                                       
   |=================================================================| 100%
 ## 
-## Time difference of 0.52 secs</code></pre>
+## Time difference of 0.58 secs</code></pre>
 <p>Now that the sequences are aligned we can use the <code>phanghorn</code> package to construct the tree.</p>
 <pre class="r"><code>library(phangorn)</code></pre>
 <pre><code>## Loading required package: ape</code></pre>
@@ -2221,6 +2221,35 @@ fitGTR &lt;- optim.pml(fitGTR, model=&quot;GTR&quot;, optInv=TRUE, optGamma=TRUE
                     rearrangement = &quot;stochastic&quot;, control=pml.control(trace=0))
 detach(&quot;package:phangorn&quot;, unload=TRUE)</code></pre>
 <p>We will be viewing the tree below.</p>
+</div>
+<div id="prepare-for-piphillin" class="section level3">
+<h3>Prepare for Piphillin</h3>
+<p>We are now in a position where we can prepare our output for uploading to Piphillin <a href="http://www.secondgenome.com/solutions/resources/data-analysis-tools/piphillin/" class="uri">http://www.secondgenome.com/solutions/resources/data-analysis-tools/piphillin/</a>. Piphillin is a tool to infer function from 16S rRNA abundance. It takes the data (more ore less) directly from the sequence variant table that <code>dada2</code> produces.</p>
+<p>You have to upload two items, a .fasta formatted file containing the representative sequences, and the sequence variant table (reformatted) to the webpage above, and it should return results to you in about 20 minutes.</p>
+<p>To do this we need to work with our <code>dada2</code> output a little bit more to create the .</p>
+<pre class="r"><code># create the fasta format file for piphillin
+
+fastseq &lt;- colnames(seqtab.nochim)
+start &lt;- as.character(seq(1:length(fastseq)))
+otustart &lt;- paste(&quot;&gt;otu&quot;, start, sep=&quot;&quot;)
+fsta &lt;- c(rbind(otustart, fastseq))
+write(fsta, &quot;example.fasta&quot;)
+
+# write out the transposed seqtab.nochim file in 
+# .csv format
+
+otulab &lt;- paste(&quot;otu&quot;, start, seq=&quot;&quot;)
+stnct &lt;-t(seqtab.nochim)
+
+rownames(stnct) &lt;- otulab
+write.csv(stnct, &quot;seqtab3.csv&quot;)
+
+
+
+# use seqtab3.csv and example.fasta 
+# as the input files for piphillin</code></pre>
+<p>Once you have these two files exported, use a text editor to open the .csv file, and change the first line to start with “OTU,samplename1,samplename2,etc.”.</p>
+<p>Then go to the website above, fill out the form, upload these files, and submit the request. Choose to get both KEGG and BIOCYC results from the latest available databases, and ask for 99% accuracy. You will get an emailed response in about 20 minutes with a link to your results. Download those results immediately (the link and results will disappear in 24 hours). Unzipe the file, and look in each of the _output folders. There should be some .txt files in both of them (if you have done everything correctly). Store these files somewhere on your computer and we will come back to these files in a later lecture.</p>
 </div>
 <div id="handoff-to-phyloseq" class="section level3">
 <h3>Handoff to <code>phyloseq</code></h3>
