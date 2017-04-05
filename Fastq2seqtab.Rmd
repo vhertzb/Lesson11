@@ -559,6 +559,44 @@ detach("package:phangorn", unload=TRUE)
 
 We will be viewing the tree below.
 
+### Prepare for Piphillin
+
+We are now in a position where we can prepare our output for uploading to Piphillin [http://www.secondgenome.com/solutions/resources/data-analysis-tools/piphillin/](http://www.secondgenome.com/solutions/resources/data-analysis-tools/piphillin/). Piphillin is a tool to infer function from 16S rRNA abundance. It takes the data (more ore less) directly from the sequence variant table that `dada2` produces. 
+
+You have to upload two items, a .fasta formatted file containing the representative sequences, and the sequence variant table (reformatted) to the webpage above, and it should return results to you in about 20 minutes.
+
+To do this we need to work with our `dada2` output a little bit more to create the .
+
+```{r}
+
+# create the fasta format file for piphillin
+
+fastseq <- colnames(seqtab.nochim)
+start <- as.character(seq(1:length(fastseq)))
+otustart <- paste(">otu", start, sep="")
+fsta <- c(rbind(otustart, fastseq))
+write(fsta, "example.fasta")
+
+# write out the transposed seqtab.nochim file in 
+# .csv format
+
+otulab <- paste("otu", start, seq="")
+stnct <-t(seqtab.nochim)
+
+rownames(stnct) <- otulab
+write.csv(stnct, "seqtab3.csv")
+
+
+
+# use seqtab3.csv and example.fasta 
+# as the input files for piphillin
+
+```
+
+Once you have these two files exported, use a text editor to open the .csv file, and change the first line to start with "OTU,samplename1,samplename2,etc.".
+
+Then go to the website above, fill out the form, upload these files, and submit the request. Choose to get both KEGG and BIOCYC results from the latest available databases, and ask for 99% accuracy. You will get an emailed response in about 20 minutes with a link to your results. Download those results immediately (the link and results will disappear in 24 hours). Unzipe the file, and look in each of the _output folders. There should be some .txt files in both of them (if you have done everything correctly). Store these files somewhere on your computer and we will come back to these files in a later lecture.
+
 ### Handoff to `phyloseq`
 
 Our next activity will be to hand off the data to the `phyloseq` package for analysis. This package requires three items: the "OTUtable," the taxonomy table, and data about the samples. The first two items are directly available at the end of your `dada2`run, and you can import the latter as a .csv file. In the case of the data that are considered here, we can calculate the derive the gender (G), mouse subject number (X), and day post-weaning (Y) directly from the file name, which has the form GXDY.
